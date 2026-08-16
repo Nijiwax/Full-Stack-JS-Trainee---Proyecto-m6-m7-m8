@@ -1,6 +1,7 @@
 # ABP CRUD - Módulo 6 (Node.js + Express)
 
 🔗 **Repositorio:** https://github.com/Nijiwax/Full-Stack-JS-Trainee---Proyecto-m6-m7-m8
+📁 **Carpeta Drive (capturas y reflexiones):** https://drive.google.com/drive/folders/1oPIkB9wOD1eln97KxLmHyNLNalEd5iXq?usp=sharing
 
 Aplicación web backend desarrollada con **Node.js** y **Express**, correspondiente a la **Parte 1 (Módulo 6)** del proyecto integrador ABP. Implementa un servidor con vistas dinámicas (Handlebars), una API RESTful para la gestión de usuarios y persistencia de datos mediante archivos planos (JSON).
 
