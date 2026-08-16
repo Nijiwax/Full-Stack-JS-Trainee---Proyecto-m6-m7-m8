@@ -1,0 +1,85 @@
+<div id="view-list-users">
+
+    <header class="py-3">
+        <h1 class="text-center">Listado de usuarios de la APP</h1>
+    </header>
+    <main class="container">
+
+        {{#if users}}
+
+        <div class="d-flex justify-content-end">
+            <a href="/users/add" class="btn btn-primary">Crear un nuevo usuario</a>
+        </div>
+        <section>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Apellido</th>
+                        <th scope="col">Correo</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    {{#each users}}
+                    <tr>
+
+                        <th scope="row">{{id}}</th>
+                        <td>{{firstname}}</td>
+                        <td>{{lastname}}</td>
+                        <td>{{email}}</td>
+                        <td>
+                            <a href="/users/profile/{{id}}" class="btn btn-info">Ver</a>
+                            <a href="/users/update/{{id}}" class="btn btn-warning">Editar</a>
+                            <button class="btn btn-danger btn-eliminar" data-id-user="{{id}}">Eliminar</button>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+
+        </section>
+        {{else}}
+        <section>
+            <p class="text-center fs-3 fw-bold">No hay usuarios para
+                mostrar...</p>
+        </section>
+        {{/if}}
+
+    </main>
+</div>
+
+<script>
+    const tableBody = document.getElementById("table-body");
+
+    if (tableBody) {
+
+        tableBody.addEventListener("click", async (event) => {
+            const elemento = event.target;
+
+            if (elemento.className.includes("btn-eliminar")) {
+
+                let id = elemento.dataset.idUser;
+
+                let confirmacion = confirm("Está seguro que desea eliminar al siguiente usuario?\n" + id);
+
+                if (!confirmacion) return false;
+
+                const response = await fetch("/api/users/" + id, { method: "DELETE" });
+                const data = await response.json();
+
+                if (response.status != 200) {
+                    return alert(data.message);
+                }
+
+                alert(data.message);
+
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            };
+        });
+
+    }
+</script>

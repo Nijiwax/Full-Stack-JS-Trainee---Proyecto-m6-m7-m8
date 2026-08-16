@@ -1,0 +1,40 @@
+{
+    "users": [
+        {
+            "firstname": "Britanni",
+            "lastname": "Owen",
+            "email": "kybaz@mailinator.com",
+            "id": "375930a6-9b84-4393-ba85-be7009c35134"
+        },
+        {
+            "firstname": "Colorado",
+            "lastname": "Holland",
+            "email": "kukuwiv@mailinator.com",
+            "id": "502e6037-2004-4b04-9ab0-737011bf2b71"
+        },
+        {
+            "firstname": "Amy",
+            "lastname": "Newton",
+            "email": "amy.newton@mailinator.com",
+            "id": "8273cfe3-8741-48c6-b752-76efd4957ccc"
+        },
+        {
+            "firstname": "Burton",
+            "lastname": "Pratt",
+            "email": "nidyporet@mailinator.com",
+            "id": "7ded0277-424d-4372-97e1-b0822b528e41"
+        },
+        {
+            "firstname": "Mara",
+            "lastname": "Montoya",
+            "email": "towifugaq@mailinator.com",
+            "id": "292d4f70-4af7-49ea-b4ab-36b36d1b925a"
+        },
+        {
+            "firstname": "Rachel",
+            "lastname": "Solis",
+            "email": "kuvuzu@mailinator.com",
+            "id": "0da49042-2d8a-4131-80d8-9307779a9829"
+        }
+    ]
+}

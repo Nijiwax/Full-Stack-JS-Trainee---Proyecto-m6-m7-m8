@@ -1,0 +1,12 @@
+# Dependencias
+node_modules/
+
+# Logs generados en runtime
+logs/
+
+# Variables de entorno (si en el futuro usás dotenv)
+.env
+
+# Archivos del sistema operativo / editor
+.DS_Store
+.vscode/
