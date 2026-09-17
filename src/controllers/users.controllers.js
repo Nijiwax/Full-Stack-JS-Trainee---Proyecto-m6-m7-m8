@@ -1,4 +1,5 @@
 import * as userService from "../services/user.service.js";
+import { uploadAvatar as uploadMiddleware } from "../middlewares/upload.middleware.js";
 import chalk from "chalk";
 
 const log = {
@@ -9,7 +10,6 @@ const log = {
 
 export const findAll = async (req, res) => {
     try {
-        // Tarea PLUS: filtrado dinámico por query params, ej: /api/users?firstname=Juan
         const { firstname, email } = req.query;
         const users = await userService.getAllUsers({ firstname, email });
 
@@ -72,7 +72,6 @@ export const findByEmail = async (req, res) => {
     }
 };
 
-// Requisito Lección 6: usuario + todos sus pedidos en una sola consulta (con include)
 export const findWithPedidos = async (req, res) => {
     try {
         const { id } = req.params;
@@ -99,19 +98,22 @@ export const findWithPedidos = async (req, res) => {
     }
 };
 
+// NOTA: la creación de usuarios "normal" ahora pasa por /api/auth/register
+// (requiere password). Se mantiene este endpoint por compatibilidad, pero
+// requiere también un password válido.
 export const create = async (req, res) => {
     try {
-        const { firstname, lastname, email } = req.body;
+        const { firstname, lastname, email, password } = req.body;
 
-        if (!firstname || !lastname || !email) {
+        if (!firstname || !lastname || !email || !password) {
             return res.status(400).json({
                 status: "error",
-                message: "No se proporcionan todos los campos requeridos.",
+                message: "No se proporcionan todos los campos requeridos (incluye password).",
                 data: null,
             });
         }
 
-        const newUser = await userService.createUser({ firstname, lastname, email });
+        const newUser = await userService.createUser({ firstname, lastname, email, password });
 
         res.status(201).json({
             status: "ok",
@@ -133,23 +135,21 @@ export const create = async (req, res) => {
     }
 };
 
-// Requisito Lección 4 (Transaccionalidad): crea un usuario y su primer pedido
-// en una sola operación atómica. Si falla el pedido, se revierte todo (rollback).
 export const createWithPedido = async (req, res) => {
     try {
-        const { firstname, lastname, email, descripcion, monto } = req.body;
+        const { firstname, lastname, email, password, descripcion, monto } = req.body;
 
-        if (!firstname || !lastname || !email || !descripcion) {
+        if (!firstname || !lastname || !email || !password || !descripcion) {
             return res.status(400).json({
                 status: "error",
                 message:
-                    "Faltan campos requeridos (firstname, lastname, email, descripcion).",
+                    "Faltan campos requeridos (firstname, lastname, email, password, descripcion).",
                 data: null,
             });
         }
 
         const { user, pedido } = await userService.createUserWithPedido(
-            { firstname, lastname, email },
+            { firstname, lastname, email, password },
             { descripcion, monto },
         );
 
@@ -177,8 +177,6 @@ export const update = async (req, res) => {
         const { id } = req.params;
         const { firstname, lastname, email } = req.body;
 
-        // Solo se actualizan los campos que efectivamente llegaron en el body,
-        // para permitir actualizaciones parciales sin pisar datos con "undefined".
         const changes = {};
         if (firstname) changes.firstname = firstname;
         if (lastname) changes.lastname = lastname;
@@ -225,4 +223,49 @@ export const deleteById = async (req, res) => {
             data: null,
         });
     }
+};
+
+// Módulo 8: subida de avatar (protegida con JWT) + asociación con el usuario en la BD
+export const uploadUserAvatar = (req, res) => {
+    uploadMiddleware(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({
+                status: "error",
+                message: err.message,
+                data: null,
+            });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                status: "error",
+                message: "No se recibió ningún archivo. El campo debe llamarse 'avatar'.",
+                data: null,
+            });
+        }
+
+        try {
+            const { id } = req.params;
+            const avatarPath = `/uploads/${req.file.filename}`;
+            const user = await userService.updateAvatar(id, avatarPath);
+
+            res.json({
+                status: "ok",
+                message: "Avatar subido y asociado al usuario con éxito.",
+                data: user,
+            });
+        } catch (error) {
+            if (error.code) {
+                return res
+                    .status(error.code)
+                    .json({ status: "error", message: error.message, data: null });
+            }
+            log.error(error.message);
+            res.status(500).json({
+                status: "error",
+                message: "Error al asociar el avatar al usuario.",
+                data: null,
+            });
+        }
+    });
 };

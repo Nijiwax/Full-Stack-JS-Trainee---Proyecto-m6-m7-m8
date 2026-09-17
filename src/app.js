@@ -6,15 +6,13 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import userRoutes from "./routes/users.routes.js";
-
 import viewsRoutes from "./routes/views.routes.js";
-
 import pedidoRoutes from "./routes/pedidos.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 import { logger } from "./middlewares/logger.js";
 
 const app = express();
-
 
 //***** INICIO CONFIGURACIÓN HANDLEBARS *****
 
@@ -28,21 +26,23 @@ app.engine("handlebars", hbs.engine);
 app.set("view engine", "handlebars");
 app.set("views", path.resolve(__dirname, "./views"));
 
-
-
 //***** FIN CONFIGURACIÓN HANDLEBARS *****
-
 
 //MIDDLEWARES GLOBALES
 app.use(express.json()); // -> los guarda en req.body
 app.use(express.urlencoded({ extended: true })); //-> los guarda en req.body
 
 app.use(express.static('public'));
+
+// Carpeta pública donde se sirven los archivos subidos (avatares, etc.)
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+
 app.use(logger);
 
 //RUTAS DE LAS VISTAS (FRONTEND)
 app.use("/", viewsRoutes);
 //USO DE RUTAS DE API
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/pedidos", pedidoRoutes);
 

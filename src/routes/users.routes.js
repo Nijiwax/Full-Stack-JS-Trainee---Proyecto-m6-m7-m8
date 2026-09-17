@@ -1,31 +1,40 @@
 import express from "express";
 import * as userController from "../controllers/users.controllers.js";
 import { validateBody } from "../middlewares/validate_body.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-//CREATE
-router.post("/", validateBody, userController.create);
+// ---------- RUTAS PÚBLICAS ----------
 
-// Requisito Lección 4 (Transaccionalidad): crea usuario + su primer pedido en una sola transacción
-router.post("/with-pedido", validateBody, userController.createWithPedido);
-
-//READ
+//READ (lectura pública: consultar usuarios no es una operación sensible)
 router.get("/", userController.findAll);
 
 router.get("/:id", userController.findById);
 
 router.get("/email/:email", userController.findByEmail);
 
-// Requisito Lección 6: usuario junto a todos sus pedidos, en una sola consulta
 router.get("/:id/pedidos", userController.findWithPedidos);
 
-//UPDATE
+// ---------- RUTAS PRIVADAS (requieren JWT) ----------
+// Se protegen todas las operaciones que crean, modifican o eliminan datos,
+// y la subida de archivos, ya que son las que pueden alterar el estado del sistema.
+// El registro de usuarios "nuevos" se hace vía /api/auth/register (público, sin token).
 
-router.put("/:id", validateBody, userController.update);
+router.post("/", authenticateToken, validateBody, userController.create);
 
-//DELETE
+router.post(
+    "/with-pedido",
+    authenticateToken,
+    validateBody,
+    userController.createWithPedido,
+);
 
-router.delete("/:id", userController.deleteById);
+router.put("/:id", authenticateToken, validateBody, userController.update);
+
+router.delete("/:id", authenticateToken, userController.deleteById);
+
+// Módulo 8: subida de avatar (protegida)
+router.post("/:id/avatar", authenticateToken, userController.uploadUserAvatar);
 
 export default router;

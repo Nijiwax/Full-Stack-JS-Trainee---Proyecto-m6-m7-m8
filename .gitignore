@@ -1,11 +1,15 @@
 # Dependencias
 node_modules/
 
+# Variables de entorno (contienen credenciales sensibles)
+.env
+
 # Logs generados en runtime
 logs/
 
-# Variables de entorno (contienen credenciales sensibles)
-.env
+# Archivos subidos por usuarios (avatares, etc.) - se mantiene la carpeta, no su contenido
+uploads/*
+!uploads/.gitkeep
 
 # Archivos del sistema operativo / editor
 .DS_Store

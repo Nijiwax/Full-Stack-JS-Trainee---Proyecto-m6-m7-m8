@@ -26,6 +26,16 @@ User.init(
             unique: true,
             validate: { isEmail: { msg: "El email no tiene un formato válido." } },
         },
+        // Módulo 8: contraseña hasheada (nunca se guarda en texto plano)
+        password: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        // Módulo 8 (PLUS): ruta del avatar subido, asociado a este usuario
+        avatar: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
     },
     {
         sequelize,

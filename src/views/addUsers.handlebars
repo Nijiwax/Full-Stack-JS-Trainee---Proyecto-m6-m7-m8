@@ -9,7 +9,7 @@
             <div class="row justify-content-center">
                 <div class="col col-md-6 col-lg-4">
 
-                    <form action="/api/users" method="post" id="form-add-user">
+                    <form action="/api/auth/register" method="post" id="form-add-user">
                         <div class="mb-3">
                             <label for="firstname" class="form-label">Nombre:</label>
                             <input type="text" class="form-control" name="firstname" id="firstname" required minlength="2">
@@ -21,6 +21,10 @@
                         <div class="mb-3">
                             <label for="email" class="form-label">Email:</label>
                             <input type="email" class="form-control" name="email" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña:</label>
+                            <input type="password" class="form-control" name="password" id="password" required minlength="6">
                         </div>
                         <div>
                             <button type="submit" class="btn btn-primary">Crear</button>

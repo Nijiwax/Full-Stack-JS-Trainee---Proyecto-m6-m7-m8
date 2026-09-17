@@ -1,14 +1,14 @@
 import { Op } from "sequelize";
+import bcrypt from "bcryptjs";
 import { sequelize, User, Pedido } from "../models/index.js";
 import { logTransaction } from "../utils/transactionLogger.js";
 
-// Campos que se exponen en las respuestas (se excluyen datos que no correspondan mostrar)
-const PUBLIC_ATTRIBUTES = ["id", "firstname", "lastname", "email", "createdAt", "updatedAt"];
+// Campos que se exponen en las respuestas (se excluyen datos que no correspondan mostrar, como "password")
+const PUBLIC_ATTRIBUTES = ["id", "firstname", "lastname", "email", "avatar", "createdAt", "updatedAt"];
 
 export const getAllUsers = async (filters = {}) => {
     const where = {};
 
-    // Tarea PLUS: filtrado dinámico por query params (?firstname=Juan / ?email=...)
     if (filters.firstname) {
         where.firstname = { [Op.iLike]: `%${filters.firstname}%` };
     }
@@ -38,6 +38,29 @@ export const getUserByEmail = async (email) => {
     return user ? user.get({ plain: true }) : null;
 };
 
+// Uso exclusivo del login: incluye el hash del password para poder compararlo.
+// Nunca se expone directamente en una respuesta HTTP.
+export const getUserByEmailForAuth = async (email) => {
+    return User.findOne({ where: { email: email.toLowerCase().trim() } });
+};
+
+// Módulo 8 (PLUS): asocia el archivo subido (avatar) a un usuario existente
+export const updateAvatar = async (id, avatarPath) => {
+    const user = await User.findByPk(id);
+
+    if (!user) {
+        const error = new Error("No puede subir un avatar para un usuario que no existe.");
+        error.code = 404;
+        throw error;
+    }
+
+    await user.update({ avatar: avatarPath });
+    const plainUser = user.get({ plain: true });
+    delete plainUser.password;
+    return plainUser;
+};
+
+// Requisito Lección 6: usuario junto con todos sus pedidos, en una sola consulta (include)
 export const getUserWithPedidos = async (id) => {
     const user = await User.findByPk(id, {
         attributes: PUBLIC_ATTRIBUTES,
@@ -46,7 +69,7 @@ export const getUserWithPedidos = async (id) => {
     return user ? user.get({ plain: true }) : null;
 };
 
-export const createUser = async ({ firstname, lastname, email }) => {
+export const createUser = async ({ firstname, lastname, email, password }) => {
     const exists = await User.findOne({ where: { email } });
 
     if (exists) {
@@ -55,8 +78,12 @@ export const createUser = async ({ firstname, lastname, email }) => {
         throw error;
     }
 
-    const user = await User.create({ firstname, lastname, email });
-    return user.get({ plain: true });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ firstname, lastname, email, password: hashedPassword });
+
+    const plainUser = user.get({ plain: true });
+    delete plainUser.password;
+    return plainUser;
 };
 
 export const updateUser = async (id, changes) => {
@@ -120,7 +147,11 @@ export const createUserWithPedido = async (userData, pedidoData) => {
             throw error;
         }
 
-        const user = await User.create(userData, { transaction: t });
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        const user = await User.create(
+            { ...userData, password: hashedPassword },
+            { transaction: t },
+        );
 
         if (!pedidoData.monto || Number(pedidoData.monto) <= 0) {
             throw new Error("El monto del pedido debe ser mayor a 0.");
@@ -138,7 +169,10 @@ export const createUserWithPedido = async (userData, pedidoData) => {
             `Usuario "${user.email}" creado junto a pedido "${pedido.id}" por $${pedido.monto}.`,
         );
 
-        return { user: user.get({ plain: true }), pedido: pedido.get({ plain: true }) };
+        const plainUser = user.get({ plain: true });
+        delete plainUser.password;
+
+        return { user: plainUser, pedido: pedido.get({ plain: true }) };
     } catch (error) {
         await t.rollback();
 

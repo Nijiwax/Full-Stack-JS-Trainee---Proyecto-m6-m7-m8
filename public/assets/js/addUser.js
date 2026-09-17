@@ -12,6 +12,7 @@ if (formAddUser) {
                 firstname: firstname.value,
                 lastname: lastname.value,
                 email: email.value,
+                password: password.value,
             });
 
             const requestOptions = {
@@ -21,7 +22,8 @@ if (formAddUser) {
                 redirect: "follow",
             };
 
-            const response = await fetch("/api/users", requestOptions);
+            // El alta pública de usuarios se hace vía /api/auth/register (no requiere token)
+            const response = await fetch("/api/auth/register", requestOptions);
             const data = await response.json();
 
             if (response.status != 201) {
