@@ -1,12 +1,17 @@
 import express from "express";
 import { create } from "express-handlebars";
-import { logger } from "./middlewares/logger.js";
+
 import * as path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import userRoutes from "./routes/users.routes.js";
+
 import viewsRoutes from "./routes/views.routes.js";
+
+import pedidoRoutes from "./routes/pedidos.routes.js";
+
+import { logger } from "./middlewares/logger.js";
 
 const app = express();
 
@@ -30,7 +35,7 @@ app.set("views", path.resolve(__dirname, "./views"));
 
 //MIDDLEWARES GLOBALES
 app.use(express.json()); // -> los guarda en req.body
-app.use(express.urlencoded({extended:true})); //-> los guarda en req.body
+app.use(express.urlencoded({ extended: true })); //-> los guarda en req.body
 
 app.use(express.static('public'));
 app.use(logger);
@@ -39,5 +44,6 @@ app.use(logger);
 app.use("/", viewsRoutes);
 //USO DE RUTAS DE API
 app.use("/api/users", userRoutes);
+app.use("/api/pedidos", pedidoRoutes);
 
 export default app;

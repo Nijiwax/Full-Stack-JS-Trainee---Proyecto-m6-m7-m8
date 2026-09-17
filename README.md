@@ -1,17 +1,16 @@
-# ABP CRUD - Módulo 6 (Node.js + Express)
+# ABP CRUD - Módulos 6 y 7 (Node.js + Express + PostgreSQL)
+
+Aplicación web backend desarrollada con **Node.js**, **Express** y **PostgreSQL** (vía **Sequelize**), correspondiente a las Partes 1 y 2 del proyecto integrador ABP. Implementa un servidor con vistas dinámicas (Handlebars), una API RESTful para la gestión de usuarios y pedidos, persistencia real en base de datos relacional, relaciones entre entidades y transacciones.
 
 🔗 **Repositorio:** https://github.com/Nijiwax/Full-Stack-JS-Trainee---Proyecto-m6-m7-m8
-📁 **Carpeta Drive (capturas y reflexiones):** https://drive.google.com/drive/folders/1oPIkB9wOD1eln97KxLmHyNLNalEd5iXq?usp=sharing
-
-Aplicación web backend desarrollada con **Node.js** y **Express**, correspondiente a la **Parte 1 (Módulo 6)** del proyecto integrador ABP. Implementa un servidor con vistas dinámicas (Handlebars), una API RESTful para la gestión de usuarios y persistencia de datos mediante archivos planos (JSON).
-
+🔗 **Google Drive:** https://drive.google.com/drive/folders/1CRdNJZRxabL6oAYPrpsqsRPP-AK9JVKo?usp=drive_link
 ---
 
 ## 📋 Requisitos del sistema
 
 - **Node.js** v18 o superior (desarrollado y probado en v22).
 - **npm** (incluido con Node.js).
-- No requiere base de datos externa en esta etapa: los datos se persisten en un archivo JSON local (`src/data/users.json`).
+- **PostgreSQL** (local o en la nube) — a partir del Módulo 7, la aplicación requiere una base de datos real corriendo.
 
 ---
 
@@ -19,7 +18,7 @@ Aplicación web backend desarrollada con **Node.js** y **Express**, correspondie
 
 1. Clonar el repositorio:
    ```bash
-   git clone <url-del-repositorio>
+   git clone https://github.com/Nijiwax/Full-Stack-JS-Trainee---Proyecto-m6-m7-m8.git
    cd preparacion-abp-m6
    ```
 
@@ -28,33 +27,45 @@ Aplicación web backend desarrollada con **Node.js** y **Express**, correspondie
    npm install
    ```
 
-3. Ejecutar el servidor (ver sección **Ejecución**).
+3. Crear la base de datos en PostgreSQL (una sola vez):
+   ```sql
+   CREATE DATABASE abp_m7;
+   ```
+
+4. Copiar el archivo de variables de entorno de ejemplo y completar los valores reales:
+   ```bash
+   cp .env.example .env
+   ```
+   Editar `.env` con tus credenciales de PostgreSQL:
+   ```
+   PORT=3000
+   DB_NAME=abp_m7
+   DB_USER=postgres
+   DB_PASSWORD=tu_password_real
+   DB_HOST=localhost
+   DB_PORT=5432
+   ```
+   > ⚠️ El archivo `.env` **nunca** se sube al repositorio (está excluido en `.gitignore`). Solo `.env.example` (sin datos reales) queda versionado como plantilla.
+
+5. Ejecutar el servidor (ver sección **Ejecución**).
 
 ---
 
 ## ▶️ Ejecución
 
-El proyecto expone dos scripts en `package.json`:
-
 | Script | Comando | Descripción |
 |---|---|---|
-| `npm run dev` | `node --watch server.js --port 3001` | Modo desarrollo: reinicia el servidor automáticamente ante cambios en el código, en el puerto `3001`. |
-| `npm start` | `node server.js` | Modo producción/estándar: levanta el servidor en el puerto por defecto (`3000`), sin reinicio automático. |
+| `npm run dev` | `node --watch server.js --port 3001` | Modo desarrollo: reinicia el servidor automáticamente ante cambios en el código. |
+| `npm start` | `node server.js` | Modo producción/estándar, sin reinicio automático. |
 
-También se puede indicar el puerto manualmente al ejecutar el servidor, gracias a `yargs`:
+Al iniciar, el servidor primero valida la conexión a la base de datos y sincroniza los modelos (crea las tablas si no existen), y recién después queda escuchando:
 
-```bash
-node server.js --port 3005
-# o su forma corta
-node server.js -p 3005
+```
+✅ Conexión a la base de datos establecida correctamente.
+Servidor escuchando en http://localhost:3000
 ```
 
-> El puerto debe estar en el rango **3000-3010**; si se indica un valor fuera de rango o no numérico, el servidor no arranca e informa el error por consola.
-
-Una vez iniciado, el servidor queda disponible en:
-```
-http://localhost:<puerto>
-```
+> El puerto se resuelve así: si existe la variable de entorno `PORT` (en `.env` o asignada por un hosting), se usa esa; si no, se usa el argumento `--port` de la línea de comandos (validado en el rango 3000-3010).
 
 ---
 
@@ -62,51 +73,69 @@ http://localhost:<puerto>
 
 ```
 preparacion-abp-m6/
-├── server.js                      # Punto de entrada: parsea el puerto y levanta el servidor
+├── server.js                        # Punto de entrada: conecta DB, sincroniza modelos y levanta el servidor
 ├── package.json
+├── .env.example                     # Plantilla de variables de entorno (sin datos reales)
+├── .env                             # Variables de entorno reales (NO se sube al repo)
 ├── logs/
-│   └── log.txt                    # Registro de accesos (fecha, hora, ruta) - se genera automáticamente
-├── public/                        # Archivos estáticos servidos por Express
-│   └── assets/
-│       ├── css/
-│       ├── img/
-│       └── js/
-│           └── addUser.js         # Lógica de frontend para el alta de usuarios
+│   ├── log.txt                      # Registro de accesos (Módulo 6)
+│   └── transactions.log             # Registro de transacciones éxito/rollback (Módulo 7)
+├── public/
+│   └── assets/js/addUser.js
 └── src/
-    ├── app.js                     # Configuración de Express, Handlebars y montaje de rutas
-    ├── data/
-    │   └── users.json             # Persistencia de usuarios en archivo plano
+    ├── app.js                       # Configuración de Express, Handlebars y montaje de rutas
+    ├── config/
+    │   └── database.js              # Configuración e instancia de Sequelize (conexión a PostgreSQL)
     ├── controllers/
-    │   ├── users.controllers.js   # Lógica de la API de usuarios
-    │   ├── views.controllers.js   # Lógica de renderizado de vistas
-    │   └── status.controller.js   # Lógica de la ruta /status
+    │   ├── users.controllers.js
+    │   ├── pedidos.controllers.js   # Nuevo (Módulo 7)
+    │   ├── status.controller.js
+    │   └── views.controllers.js
     ├── middlewares/
-    │   ├── validate_body.js       # Validación básica del body en las requests
-    │   └── logger.js              # Middleware de logging de accesos
+    │   ├── validate_body.js
+    │   └── logger.js
     ├── models/
-    │   └── User.model.js          # Modelo de usuario (CRUD sobre users.json)
+    │   ├── index.js                 # Asociaciones entre modelos + sync (Módulo 7)
+    │   ├── User.model.js            # Ahora es un modelo Sequelize (antes era JSON)
+    │   └── Pedido.model.js          # Nuevo (Módulo 7)
+    ├── services/                    # Nuevo (Módulo 7): lógica de negocio y acceso a datos
+    │   ├── user.service.js
+    │   └── pedido.service.js
     ├── routes/
-    │   ├── users.routes.js        # Rutas de la API REST (/api/users)
-    │   └── views.routes.js        # Rutas de las vistas (/, /status, /users, etc.)
+    │   ├── users.routes.js
+    │   ├── pedidos.routes.js        # Nuevo (Módulo 7)
+    │   └── views.routes.js
     ├── utils/
-    │   └── utils.js                # Helpers de lectura/escritura de JSON
-    └── views/                      # Plantillas Handlebars (layout, partials y vistas)
+    │   ├── utils.js
+    │   └── transactionLogger.js     # Nuevo (Módulo 7)
+    └── views/                        # Plantillas Handlebars
+```
+
 ---
 
 ## 🧠 Justificación de decisiones técnicas
 
-- **Nombre del archivo principal (`server.js` + `src/app.js`)**: en lugar de un único `index.js`, se separó la **configuración de la aplicación** (`src/app.js`, donde se define Express, Handlebars y las rutas) del **arranque del servidor** (`server.js`, donde se resuelve el puerto y se llama a `app.listen()`). Esta separación es una convención común en Express que facilita testear `app` de forma aislada sin necesariamente levantar un puerto real.
+### Módulo 6
 
-- **`node --watch` en vez de `nodemon`**: se optó por la bandera nativa `--watch` de Node.js (disponible desde Node 18+) para el modo desarrollo, evitando sumar una dependencia externa (`nodemon`) cuando Node ya resuelve esa necesidad de forma built-in.
+- **`server.js` + `src/app.js`**: se separó la configuración de Express (`app.js`) del arranque del servidor (`server.js`), facilitando testear `app` de forma aislada.
+- **`node --watch` en vez de `nodemon`**: se usó la bandera nativa de Node 18+ para evitar sumar una dependencia externa.
+- **Motor de plantillas Handlebars**: se usó en vez de servir solo contenido estático, para poder renderizar vistas dinámicas con datos reales del backend.
 
-- **`yargs` en vez de `dotenv` para el puerto**: en lugar de fijar el puerto mediante una variable de entorno en un archivo `.env`, se implementó `yargs` para leerlo como argumento de línea de comandos (`--port` / `-p`), con **validación automática de rango** (3000-3010) y un valor por defecto. Esto permite cambiar el puerto sin necesidad de crear o editar archivos adicionales, aunque implica que no hay variables de entorno configuradas todavía (pendiente si el proyecto lo requiere en etapas futuras, por ejemplo para credenciales de base de datos).
+### Módulo 7
 
-- **Carpetas adicionales (`models`, `utils`, `data`)**: además de las carpetas base sugeridas (`routes`, `controllers`, `middlewares`, `public`), se agregaron:
-  - `models/`: para encapsular la lógica de datos del usuario (patrón Active Record simplificado), anticipando el reemplazo de la persistencia en JSON por un ORM real en el Módulo 7.
-  - `utils/`: funciones reutilizables de lectura/escritura de archivos JSON, para no repetir lógica de `fs` en los modelos.
-  - `data/`: contiene el archivo `users.json` que actúa como base de datos temporal.
+- **¿Por qué Sequelize + `pg` como cliente de conexión?** Se eligió `pg` (a través de Sequelize) por ser el driver oficial y más utilizado para PostgreSQL en Node.js. Sequelize se sumó sobre él como ORM porque permite trabajar con modelos, asociaciones (relaciones 1:N) y transacciones de forma declarativa, evitando escribir SQL manual repetitivo y reduciendo errores de sintaxis en consultas complejas.
 
-- **Motor de plantillas (Handlebars)**: se decidió usar `express-handlebars` en vez de servir únicamente contenido estático desde `/public`, para poder renderizar vistas dinámicas (listado de usuarios, formularios de alta/edición) con datos reales provenientes del backend. `/public` se sigue utilizando para servir el JavaScript de frontend (`addUser.js`) y queda preparado para sumar CSS e imágenes propias más adelante.
+- **¿Cómo se protegen los datos sensibles?** Las credenciales de la base de datos (usuario, contraseña, host, puerto) se leen exclusivamente desde variables de entorno (`.env`), que está excluido del repositorio mediante `.gitignore`. Solo se versiona `.env.example`, con los nombres de las variables pero sin valores reales. Además, las respuestas de la API seleccionan explícitamente los campos a exponer (`attributes` en las consultas Sequelize), evitando filtrar información interna innecesaria.
+
+- **¿Por qué se actualiza solo ciertos campos en `PUT`?** El endpoint de actualización arma dinámicamente un objeto `changes` solo con los campos que efectivamente llegaron en el `body`. Esto permite actualizaciones parciales (por ejemplo, cambiar solo el apellido) sin necesidad de reenviar todos los datos del usuario, y evita pisar campos existentes con `undefined` si el cliente no los envía.
+
+- **¿Qué validaciones se aplicaron para evitar errores?** Se valida: (1) que el usuario/pedido exista antes de actualizar o eliminar (404 si no existe), (2) que un email no esté duplicado al crear o actualizar (400 si ya existe), (3) formato de email válido y campos no vacíos a nivel de modelo (validaciones de Sequelize), y (4) que el monto de un pedido sea mayor a 0.
+
+- **¿Qué ventaja se encontró usando ORM frente a SQL manual?** Sequelize permite expresar relaciones (`include`) y transacciones sin escribir `JOIN`s ni sentencias `BEGIN/COMMIT/ROLLBACK` a mano, reduciendo la posibilidad de errores de sintaxis SQL. También aporta validaciones a nivel de modelo (antes de tocar la base), y hace el código más legible y mantenible al trabajar con objetos JavaScript en vez de resultados crudos de filas.
+
+- **Relación 1:N Usuario–Pedidos**: se modeló `Usuario` como entidad principal y `Pedido` como entidad dependiente (`Pedido.belongsTo(User)` / `User.hasMany(Pedido)`), ya que un usuario puede realizar múltiples pedidos, pero cada pedido pertenece a un único usuario. Se usó `onDelete: "CASCADE"` para que, al eliminar un usuario, se eliminen también sus pedidos asociados y no queden registros huérfanos.
+
+- **Transaccionalidad**: se implementó `POST /api/users/with-pedido`, que crea un usuario y su primer pedido en una única transacción de Sequelize. Si la creación del pedido falla (por ejemplo, monto inválido), se revierte también la creación del usuario (`rollback`), garantizando que nunca quede un usuario sin su pedido asociado a mitad de camino. Cada resultado (éxito o rollback) queda registrado en `logs/transactions.log`.
 
 ---
 
@@ -117,74 +146,73 @@ preparacion-abp-m6/
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | `/` | Página principal. |
+| GET | `/status` | Estado del servidor (JSON). |
 | GET | `/users` | Listado de usuarios (HTML). |
 | GET | `/users/add` | Formulario para crear un usuario. |
 | GET | `/users/update/:id` | Formulario para editar un usuario existente. |
 
-### API RESTful (`/api/users`)
+### API RESTful — Usuarios (`/api/users`)
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/users` | Devuelve todos los usuarios (JSON). |
+| GET | `/api/users` | Lista todos los usuarios. Admite filtros: `?firstname=` y `?email=`. |
 | GET | `/api/users/:id` | Devuelve un usuario por ID. |
 | GET | `/api/users/email/:email` | Devuelve un usuario por email. |
+| GET | `/api/users/:id/pedidos` | Devuelve un usuario junto a todos sus pedidos (relación, vía `include`). |
 | POST | `/api/users` | Crea un nuevo usuario. |
-| PUT | `/api/users/:id` | Actualiza un usuario existente. |
-| DELETE | `/api/users/:id` | Elimina un usuario. |
+| POST | `/api/users/with-pedido` | Crea un usuario y su primer pedido en una única transacción. |
+| PUT | `/api/users/:id` | Actualiza (parcialmente) un usuario existente. |
+| DELETE | `/api/users/:id` | Elimina un usuario (y sus pedidos, en cascada). |
 
-**Ejemplo — crear un usuario:**
+### API RESTful — Pedidos (`/api/pedidos`)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/pedidos` | Lista todos los pedidos, con los datos de su usuario incluidos. |
+| GET | `/api/pedidos/:id` | Devuelve un pedido por ID. |
+| POST | `/api/pedidos` | Crea un nuevo pedido asociado a un usuario existente. |
+| PUT | `/api/pedidos/:id` | Actualiza un pedido. |
+| DELETE | `/api/pedidos/:id` | Elimina un pedido. |
+
+Todas las respuestas de la API siguen un formato consistente:
+```json
+{ "status": "ok" | "error", "message": "string", "data": {} | [] | null }
+```
+
+**Ejemplo — crear usuario + pedido en una transacción:**
 ```bash
-curl -X POST http://localhost:3000/api/users \
+curl -X POST http://localhost:3000/api/users/with-pedido \
   -H "Content-Type: application/json" \
-  -d '{"firstname":"Ana","lastname":"Perez","email":"ana.perez@mail.com"}'
+  -d '{"firstname":"Carlos","lastname":"Diaz","email":"carlos@mail.com","descripcion":"Compra de notebook","monto":150000}'
 ```
 
-**Respuesta esperada:**
-```json
-{
-  "message": "Usuario creado con éxito",
-  "user": {
-    "firstname": "Ana",
-    "lastname": "Perez",
-    "email": "ana.perez@mail.com",
-    "id": "generado-automáticamente"
-  }
-}
-```
-
-**Ejemplo — listar usuarios:**
+**Ejemplo — usuario con sus pedidos:**
 ```bash
-curl http://localhost:3000/api/users
-```
-
-**Ejemplo — eliminar un usuario:**
-```bash
-curl -X DELETE http://localhost:3000/api/users/<id>
-```
-
-Todas las respuestas de error siguen un formato consistente:
-```json
-{ "message": "Descripción del error" }
+curl http://localhost:3000/api/users/<id>/pedidos
 ```
 
 ---
 
-## ✅ Estado actual del desarrollo (Parte 1 - Módulo 6)
+## ✅ Estado actual del desarrollo
 
-Implementado:
-- Servidor Express funcional con arranque configurable por puerto.
-- Vistas dinámicas con Handlebars (layout + partials + vistas).
-- Middleware `express.static()` para servir archivos desde `/public`.
-- CRUD completo de usuarios persistido en archivo plano (`users.json`).
-- Validación básica de datos y manejo de errores en la API.
-- Rutas modularizadas mediante `express.Router()` y conectadas con `app.use()`.
-- Ruta pública `/status`, que devuelve en JSON el estado del servidor (uptime y timestamp).
-- Middleware global de logging (`src/middlewares/logger.js`): registra cada request en `logs/log.txt` con formato `[fecha hora] MÉTODO ruta`, usando `fs.appendFile()`. La carpeta `logs/` y el archivo se crean automáticamente al iniciar el servidor si no existen.
+### Parte 1 - Módulo 6 (completo)
+- Servidor Express funcional, vistas dinámicas con Handlebars.
+- Middleware `express.static()`, rutas públicas `/` y `/status`.
+- Logging de accesos en `logs/log.txt`.
 
-Pendiente para próximas iteraciones:
-- Variables de entorno (`dotenv`) si se requieren para configuración sensible.
-- Integración con base de datos real (PostgreSQL/MongoDB) y ORM — **Módulo 7**.
-- Autenticación con JWT y subida de archivos — **Módulo 8**.
+### Parte 2 - Módulo 7 (completo)
+- Conexión estable a PostgreSQL vía Sequelize, con credenciales en `.env`.
+- Modelos `User` y `Pedido`, relacionados 1:N.
+- CRUD completo sobre ambas entidades, con validaciones y manejo de errores.
+- Filtrado dinámico por query params en `GET /api/users`.
+- Transacción atómica (`with-pedido`) con rollback verificado y logging en `logs/transactions.log`.
+- Consulta combinada usuario + pedidos con `include`.
+
+### Pendiente para la Parte 3 - Módulo 8
+- Autenticación de usuarios (login/registro) con JWT.
+- Rutas protegidas (públicas vs. privadas).
+- Subida de archivos (imágenes de usuario) con validación de tipo y tamaño.
+
 ---
 
 ## 👤 Autor

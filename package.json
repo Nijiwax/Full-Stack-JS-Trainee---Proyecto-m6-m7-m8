@@ -13,9 +13,13 @@
   "type": "module",
   "dependencies": {
     "chalk": "^6.0.0",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-handlebars": "^9.0.1",
     "moment": "^2.30.1",
+    "pg": "^8.23.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.8",
     "uuid": "^14.0.1",
     "yargs": "^18.1.0"
   }

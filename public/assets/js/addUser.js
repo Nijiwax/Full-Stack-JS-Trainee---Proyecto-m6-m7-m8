@@ -28,7 +28,7 @@ if (formAddUser) {
                 return alert(data.message);
             }
 
-            let mensaje = `${data.message}, con ID:\n${data.user.id}`;
+            let mensaje = `${data.message}, con ID:\n${data.data.id}`;
 
             alert(mensaje);
 

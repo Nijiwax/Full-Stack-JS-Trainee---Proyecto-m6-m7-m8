@@ -4,7 +4,7 @@ node_modules/
 # Logs generados en runtime
 logs/
 
-# Variables de entorno (si en el futuro usás dotenv)
+# Variables de entorno (contienen credenciales sensibles)
 .env
 
 # Archivos del sistema operativo / editor

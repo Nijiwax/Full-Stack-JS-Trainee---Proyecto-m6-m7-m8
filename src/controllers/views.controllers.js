@@ -1,4 +1,4 @@
-import User from "../models/User.model.js";
+import * as userService from "../services/user.service.js";
 
 // VISTA HOME
 export const homeView = (req, res) => {
@@ -7,45 +7,40 @@ export const homeView = (req, res) => {
     } catch (error) {
         res.status(500).send("Error en cargar vista...");
     }
-}
+};
 
-export const usersView = (req, res) => {
+export const usersView = async (req, res) => {
     try {
-
-        const users = User.findAll();
+        const users = await userService.getAllUsers();
 
         res.render("listUsers", {
-            users
+            users,
         });
     } catch (error) {
+        console.log(error);
         res.status(500).send("Error en cargar vista...");
     }
-}
-
+};
 
 export const usersAddView = (req, res) => {
     try {
         res.render("addUsers");
-
     } catch (error) {
         res.status(500).send("Error en cargar vista...");
     }
-}
+};
 
-export const usersUpdateView = (req, res) => {
+export const usersUpdateView = async (req, res) => {
     try {
-        let { id } = req.params;
-        let user = User.findById(id);
+        const { id } = req.params;
+        const user = await userService.getUserById(id);
 
         res.render("updateUser", {
             user,
-            id
+            id,
         });
-
     } catch (error) {
+        console.log(error);
         res.status(500).send("Error en cargar vista...");
     }
-}
-
-
-
+};
